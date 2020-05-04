@@ -17,8 +17,8 @@ serverPort = args.P
 serverName = args.N
 
 ##Create socket connection to server
-clientSocket = DCTCPSocket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
-clientSocket.checkCwnd()
+clientSocket = DCTCPSocket()
+#clientSocket.checkCwnd()
 clientSocket.connect((serverName,serverPort))
 
 print("Connected to Socket: ", serverName, ":", serverPort)
