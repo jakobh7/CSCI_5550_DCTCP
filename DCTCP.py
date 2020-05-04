@@ -28,6 +28,14 @@ class DCTCPSocket(socket):
         except (KeyboardInterrupt,SystemExit):
             self.close()
 
+    def check_connection_message(pair):
+        #TODO: parse message to determine if it is a connection/Synch message
+        return True
+
+    def getAckNum(pair):
+        #TODO: parse message to determine ACK num for message
+        return 25
+
     def accept(self):
         looking_for_connection = True
         while looking_for_connection:
