@@ -11,6 +11,17 @@ class DCTCPSocket(socket):
         self.ecn = 0
         self.connectionAddress = (0,0)
 
+   def setHeader(self, Seq, Ack, Syn, Fin, ECN):
+       return "<h>Seq={},Ack={},Syn={},Fin={},ECN={}</h>".format(Seq,Ack,Syn,Fin,ECN)
+
+    def parseHeader(self, message):
+        start = message.find('<h>')
+        end = message.find('</h>')
+        headerString = message[start+2:end]
+
+        headerString = headerString.split(',')
+
+
     #def checkCwnd(self):
     #    self.getsockopt(socket.IPPROTO_TCP, socket.SO_SNDBUF)
     def threadedRecieve(self):
