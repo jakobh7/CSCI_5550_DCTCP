@@ -7,27 +7,53 @@ class DCTCPSocket(socket):
 
     def __init__(self, *args, **kwargs):
         super(DCTCPSocket, self).__init__(AF_INET,SOCK_DGRAM)
+        self.rcvwnd = []
         self.cwnd = []
+        self.cwnd_size = 1
         self.ecn = 0
         self.connectionAddress = (0,0)
 
-   def setHeader(self, Seq, Ack, Syn, Fin, ECN):
+    def setHeader(self, Seq, Ack, Syn, Fin, ECN):
        return "<h>Seq={},Ack={},Syn={},Fin={},ECN={}</h>".format(Seq,Ack,Syn,Fin,ECN)
 
     def parseHeader(self, message):
         start = message.find('<h>')
         end = message.find('</h>')
-        headerString = message[start+2:end]
+        headerString = message[start+3:end]
 
-        headerString = headerString.split(',')
+        headerList = headerString.split(',')
+
+        seqNum=0
+        ackNum=0
+        synFlag=0
+        finFlag=0
+        ECN = 0
+
+        for header in range(len(headerList)):
+            item = headerList[header].split('=')
+            if item[0] == "Seq":
+                seqNum = item[1]
+            elif item[0] == "Ack":
+                ackNum = item[1]
+            elif item[0] == "Syn":
+                synFlag = item[1]
+            elif item[0] == "Fin":
+                finFlag = item[1]
+            elif item[0] == "ECN":
+                ECN = item[1]
+
+        return seqNum, ackNum, synFlag, finFlag, ECN
+
+    def removeHeader(self, message):
+        headerEnd = message.find('</h>')+4
 
 
     #def checkCwnd(self):
     #    self.getsockopt(socket.IPPROTO_TCP, socket.SO_SNDBUF)
     def threadedRecieve(self):
        message, clientAddress = self.recvfrom(2048)
-       print("Message: ", message, " Address: ", clientAddress)
-       self.cwnd.append((clientAddress,message))
+       print("Message: ", message.decode(), " Address: ", clientAddress)
+       self.rcvwnd.append((clientAddress,message.decode()))
 
     def listen(self, num):
         listener_thread = threading.Thread(target=self.threadedRecieve)
@@ -39,21 +65,44 @@ class DCTCPSocket(socket):
         except (KeyboardInterrupt,SystemExit):
             self.close()
 
-    def check_connection_message(pair):
-        #TODO: parse message to determine if it is a connection/Synch message
-        return True
+    def check_connection_message(self, pair):
+        seqNum, ackNum, synFlag, finFlag, ECN = self.parseHeader(pair[1])
+        return synFlag == "1"
 
-    def getAckNum(pair):
-        #TODO: parse message to determine ACK num for message
-        return 25
+    def getAckNum(self, pair):
+        seqNum, ackNum, synFlag, finFlag, ECN = self.parseHeader(pair[1])
+        return ackNum
+    def getSeqNum(self, pair):
+        seqNum, ackNum, synFlag, finFlag, ECN = self.parseHeader(pair[1])
+        return seqNum
 
     def accept(self):
         looking_for_connection = True
         while looking_for_connection:
-            for i in range(len(self.cwnd)):
-                print(self.cwnd[i])
-                if(check_connection_message(self.cwnd[i])):
-                    self.connectionAddress = self.cwnd[i][0]
-                    self.SequenceNum = 0
-                    self.AcknowledgementNum = getAckNum(self.cwnd[i])
-                    looking_for_connection = False
+                if(len(self.rcvwnd)>0):
+                    pair = self.rcvwnd.pop()
+                    print("Checking connection message for pair: ", pair)
+                    if(self.check_connection_message(pair)):
+                         print("Valid connection message")
+                         self.connectionAddress = pair[0]
+                         self.SequenceNum = 0
+                         self.AcknowledgementNum = self.getSeqNum(pair)+1
+                         looking_for_connection = False
+
+        self.sendto(self.setHeader(self.SequenceNum,self.AcknowledgementNum,1,0,0).encode(),self.connectionAddress)
+
+
+        return self, self.connectionAddress
+
+    def connect(self,address):
+        self.connectionAddress = address
+        self.sendto(self.setHeader(0,0,1,0,0).encode(), self.connectionAddress)
+        message, address = self.recvfrom()
+
+    def send(self, message):
+        print(message)
+        self.sendto(message, self.connectionAddress)
+
+    def recv(self, messageSize):
+        print(messageSize)
+        return self.recvfrom(messageSize)[0]
