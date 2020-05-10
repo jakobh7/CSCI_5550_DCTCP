@@ -33,8 +33,17 @@ print('From Server: ', modifiedSentence.decode())
 
 file = open("template.tex", "r")
 fileString = file.read()
-print("Sending a large file: ", fileString)
+file.close()
+print("Sending a large file")
 clientSocket.send(fileString.encode())
+print("Sent file")
 returnedFileString = clientSocket.recv(2048)
+
+
+
+with  open("output.txt",'w') as file:
+    file.write(returnedFileString.decode())
+
+
 
 clientSocket.close()

@@ -32,7 +32,7 @@ while True:
 
     largeFile = connectionSocket.recv(2048).decode()
 
-    print("Sending the exact same file: ", largeFile)
+    print("Recieved File. Sending the exact same file: ")
     connectionSocket.send(largeFile.encode())
 
     connectionSocket.close()

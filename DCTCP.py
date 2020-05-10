@@ -55,19 +55,19 @@ class DCTCPSocket(socket):
         return message[headerEnd::]
 
     def splitMessage(self, message):
-        headerSize = 500
+        headerSize = 100
 
-        if len(message) > (self.messageSize+headerSize):
-            numPackets = int(len(message)/(self.messageSize+headerSize)) + 1
+        if len(message) > (self.messageSize-headerSize):
+            numPackets = int(len(message)/(self.messageSize-headerSize)) + 1
             print(numPackets)
 
             for packet in range(numPackets):
-                packetStart = self.messageSize*packet
-                packetEnd = self.messageSize*(packet+1)
+                packetStart = (self.messageSize-headerSize)*packet
+                packetEnd = (self.messageSize-headerSize)*(packet+1)
                 datagram = message[packetStart:packetEnd]
 
                 finalFlag = 0
-                if packet==numPackets-1:
+                if packet==(numPackets-1):
                     finalFlag = 1
                 ######queue is a 5 tuple (sentFlag, ackedFlag, packetSequenceNum, packetData, finalFlag)
                 self.queue.append([False, False, self.SequenceNum+1, datagram, finalFlag])
@@ -150,15 +150,14 @@ class DCTCPSocket(socket):
             for i in range(min(self.cwnd, len(self.queue))):
                 ###queue is a 4 tuple (sentFlag, ackedFlag, packetSequenceNum, packetData, finalFlag) for ease of use
                 if not self.checkSent(self.queue[i][0]):
-                    print("Message Length: ", len((self.setHeader(self.queue[i][2],self.AckNum,0,self.queue[i][4],0) + self.queue[i][3].decode()).encode()))
                     self.sendto((self.setHeader(self.queue[i][2],self.AckNum,0,self.queue[i][4],0) + self.queue[i][3].decode()).encode(), self.connectionAddress)
                     self.queue[i][0] = True
 
             ackMess, address = self.recvfrom(self.messageSize)
             ackNum = self.getAckNum(ackMess.decode())
 
-            for i in range (self.cwnd):
-                if self.queue[i][2] + len(self.queue[i][3]) == ackNum:
+            for i in range(min(self.cwnd, len(self.queue))):
+                if (self.queue[i][2] + len(self.queue[i][3])) == ackNum:
                     self.queue[i][1] = True
 
             #check if first element in the queue has been acked
@@ -168,13 +167,13 @@ class DCTCPSocket(socket):
                 if self.DuplicateAcks > 3:
                     self.queue[0][0] = False
             else:
-                self.queue.pop()
+                self.queue.pop(0)
 
 
     def recv(self, messageSize):
         finalFlag = 0
         data = ""
-        while finalFlag == 0:
+        while (finalFlag == 0):
             message, address = self.recvfrom(self.messageSize)
             self.rcvQueue.append(message.decode())
 
@@ -188,11 +187,7 @@ class DCTCPSocket(socket):
                     self.AckNum += len(messageData)
                     self.sendto(self.setHeader(self.SequenceNum,self.AckNum,0,finFlag,0).encode(), self.connectionAddress)
 
-                    finalFlag = finFlag
+                    finalFlag = int(finFlag)
 
-                else:
-                    print("incomingSequenceNum: {}, currnt AckNum: {}", incomingSequenceNum, self.AckNum)
 
-            data = self.removeHeader(message.decode())
-            seqNum, ackNum, synFlag, finFlag, ECN = self.parseHeader(message.decode())
         return data.encode()
