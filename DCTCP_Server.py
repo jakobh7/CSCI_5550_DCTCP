@@ -24,10 +24,16 @@ print("Serving on port ", serverPort)
 while True:
     connectionSocket, addr = serverSocket.accept()
 
-    sentence = connectionSocket.recv(1024).decode()
+    sentence = connectionSocket.recv(2048).decode()
     capitalizedSentence = sentence.upper()
 
     print("Sending message: ", capitalizedSentence)
     connectionSocket.send(capitalizedSentence.encode())
 
+    largeFile = connectionSocket.recv(2048).decode()
+
+    print("Sending the exact same file: ", largeFile)
+    connectionSocket.send(largeFile.encode())
+
     connectionSocket.close()
+    print("ConnectionClosed. It worked")

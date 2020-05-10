@@ -30,4 +30,11 @@ modifiedSentence = clientSocket.recv(1024)
 
 ##display and close up
 print('From Server: ', modifiedSentence.decode())
+
+file = open("template.tex", "r")
+fileString = file.read()
+print("Sending a large file: ", fileString)
+clientSocket.send(fileString.encode())
+returnedFileString = clientSocket.recv(2048)
+
 clientSocket.close()
