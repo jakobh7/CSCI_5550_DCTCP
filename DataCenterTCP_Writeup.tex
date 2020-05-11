@@ -1,0 +1,79 @@
+% ****** Start of file DataCenterTCP_Writeup.tex ******
+%
+%   This file is part of the APS files in the REVTeX 4.2 distribution.
+%   Version 4.2a of REVTeX, December 2014
+%
+%   Copyright (c) 2014 The American Physical Society.
+%
+%   See the REVTeX 4 README file for restrictions and more information.
+%
+% TeX'ing this file requires that you have AMS-LaTeX 2.0 installed
+% as well as the rest of the prerequisites for REVTeX 4.2
+%
+% See the REVTeX 4 README file
+% It also requires running BibTeX. The commands are as follows:
+%
+%  1)  latex apssamp.tex
+%  2)  bibtex apssamp
+%  3)  latex apssamp.tex
+%  4)  latex apssamp.tex
+%
+\documentclass[%
+% reprint,
+%superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose,
+%preprint,
+%preprintnumbers,
+%nofootinbib,
+%nobibnotes,
+%bibnotes,
+amsmath,amssymb,
+aps,
+%pra,
+%prb,
+%rmp,
+%prstab,
+%prstper,
+%floatfix,
+]{revtex4-2}
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage{hyperref}% add hypertext capabilities
+
+
+
+\begin{document}
+
+\title{DCTCP:\\Congestion Control In a Datacenter Network Structure}
+
+\author{Jakob Horner}
+
+\author{Mohammad Hadi}
+
+
+\date{\today}
+
+\begin{abstract}
+\begin{description}
+\item[Abstract]
+In data center network topologies, there are often strict expectations on throughput and round trip time even when dealing with large amounts of data. With normal network message passing approaches, often the large and varied flows of a data center can break the implemented congestion control systems. We attempt to implement a TCP over UDP protocol that offers congestion control explicitly tailored to data center topologies based on previous data center TCP research. This protocol is tested on a virtual data center network made with Mininet. 
+
+The git repo can be accessed here: \url{https://github.com/jakobh7/CSCI_5550_DCTCP}
+\end{description}
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+In the past decade, with the increase of social networks, cloud computing, and consolidation of  other data into single data centers, it has become extremely important to provide consistent and improved performance. While there have been different strategies employed to address this performance, the implementation of a specific data center TCP protocol is a lucrative prospect that can offer cost savings for data center owners by offering greater performance without upgrading hardware.
+
+
+
+\end{document}
+%
+% ****** End of file DataCenterTCP_Writeup.tex ******
