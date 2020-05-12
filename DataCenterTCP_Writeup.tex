@@ -19,7 +19,7 @@
 %  4)  latex apssamp.tex
 %
 \documentclass[%
-% reprint,
+ reprint,
 %superscriptaddress,
 %groupedaddress,
 %unsortedaddress,
@@ -72,10 +72,32 @@ The git repo can be accessed here: \url{https://github.com/jakobh7/CSCI_5550_DCT
 \section{Introduction}
 In the past decade, with the increase of social networks, cloud computing, and consolidation of  other data into single data centers, it has become extremely important to provide consistent and improved performance. While there have been different strategies employed to address this performance, the implementation of a specific data center TCP protocol is a lucrative prospect that can offer cost savings for data center owners by offering greater performance without upgrading hardware.
 
-The topology of data centers is distinct from common network topologies. Often data centers are created with a "fat-tree" network topology to separate and balance workloads. This "fat-tree" topology has a top layer switch connected to distinct lower-level switches which connect to server racks to process data. These network topologies often use a Partition/Aggregate workflow pattern to split work across switches in a layer and receive information in a real-time fashion. Because of the layered structure of the tree, and the workflow dependency on the workers below low latency is required for every level of the tree so that the overall response can be in real-time. This difference in topology and performance expectation makes it reasonable to create a specialized approach to improve performance.
+The topology of data centers is distinct from common network topologies. Often data centers are created with a "fat-tree" network topology to separate and balance workloads. This "fat-tree" topology has a top layer switch connected to distinct lower-level switches which connect to server racks to process data. These network topologies often use a Partition/Aggregate workflow pattern to split work across switches in a layer and receive information in a real-time fashion. Because of the layered structure of the tree, and the workflow dependency on the workers below low latency is required for every level of the tree so that the overall response can be in real-time. This difference in topology and performance expectation is the driving motivation for implementing a specialized method of network communication.
 
-The previous research on data center networks show that data center network traffic is primarily TCP 
+In TCP network communication, when a packet is dropped - commonly due to overflowed queues in a switch - TCP's reliable data transfer requires the packet to be resent which is extremely costly in terms of latency. Usually TCP's congestion control algorithm adequately limits dropped packets by adjusting how many packets are sent at a time, reducing that number after a packet is dropped. This method is reactive, however, and is not ideal for a system that requires low latency. With knowledge of the common flow patterns of the network you're designing, it is possible to create a more proactive method of congestion control to stop packet loss before a packet gets dropped. This idea of proactive congestion control is central to the previous research on data center TCP.
 
+Most TCP implementations are build into modern operating systems and network ports. This often obfuscates and protects properties and functions of the TCP implementation, making them harder to access and work with. Our implementation of this previous work on Data Center TCP is based on a TCP over UDP model. This not only allows us for easy access to TCP members such as the cwnd structure and incoming and outgoing queues, it also allows us to implement a version of the TCP header that is pared down to the information needed by our specific protocol. Some of these implementation details might add overhead compared to a lower level implementation of the protocols, but having a basic TCP over UDP written in the same format gives us a good benchmark to test against.
+
+Our tests rely on a Mininet virtual network to run benchmark testing. This allows us to create our own fat-tree topology and pass bursts of high message flows through the switches. This way we can replicate the message flow patterns present in real world data centers and provide benchmarks for this implementation without worrying about harming real world data.
+
+\section{Congestion Control}
+To understand how the data center TCP improves upon the performance of a typical TCP implementation, we need to understand the importance of congestion control in a data center network and the differences in congestion control strategies. 
+\paragraph{Effects of Congestion Control}
+In a data center network, messages sent to  server racks get sent through layers of switches with limited queues to hold messages to forward on. In all cases, switches have a limited memory such that when there are too many messages being sent across the network to a particular switch filling the queue, which, when full, drops any new messages sent to it.
+
+The message flows in a data structure 
+
+\paragraph{TCP Congestion Control Strategies}
+
+\paragraph{Data Center TCP Congestion Control Strategies}
+
+\section{Data Center TCP over UDP implementation}
+
+\section{Benchmark Testing}
+\subsection{Mininet Setup}
+\subsection{Benchmark Results}
+
+\section{Conclusion}
 
 
 \end{document}
