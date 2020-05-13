@@ -85,11 +85,18 @@ To understand how the data center TCP improves upon the performance of a typical
 \paragraph{Effects of Congestion Control}
 In a data center network, messages sent to  server racks get sent through layers of switches with limited queues to hold messages to forward on. In all cases, switches have a limited memory such that when there are too many messages being sent across the network to a particular switch filling the queue, which, when full, drops any new messages sent to it.
 
-The message flows in a data structure 
+The message flows in a data center analyzed by the previous DCTCP research were shown to be a mixture of consistent smaller data flows with inconsistent bursts of large sized data. These varied data flow allow for a considerable amount of dropped packets from the bursts of large data. When these large flows are streamed out to the switches in the data center, the queues quickly fill and lead to dropped packets.
+
+The common strategy of congestion control is limiting the amount of packets sent across a network by implementing a "cwnd" value as a limit to how many packets can be sent without receiving acknowledgment. Once packets are received and subsequently removed from switch cues, the communication protocol sends an acknowledgment message to alert the sender that it is safe for more packets to be sent into the network. From this common framework, there are multiple strategies to address  
 
 \paragraph{TCP Congestion Control Strategies}
+TCP's typical congestion control strategy has three main parts: Slow Start, Congestion Avoidance, and Fast Recovery. 
+In Slow Start, cwnd is doubled every time an acknowledgment is received until a variable congestion threshold is reached. After this, cwnd is increased linearly with every ack. 
+With its Congestion Avoidance, TCP waits until it receives an indication that one of its packets has been dropped: either the sender receives 3 duplicate acks or there is a complete timeout since no acks have been received in a reasonable amount of time \(given the known RTT of packets for the connection\). If the sender has received 3 duplicate acknowledgments, this indicates that just one package has been lost - a less severe issue - and the congestion control algorithm enters a fast recovery mode. However, if there is a timeout, the congestion control algorithm reverts back to the slow start and reduces the congestion threshold by half so that the slow start is even slower.
+Fast Recovery allows the cwnd to expand even when it waits on acknowledgment. Until a timeout occurs, the cwnd increases every time a duplicate ack is received.
 
 \paragraph{Data Center TCP Congestion Control Strategies}
+Where Data Center TCP's congestion control strategy is significantly different is its active management to determine if a switch is congested before a packet is dropped by marking the TCP header both on the level of the switch and the receiver.
 
 \section{Data Center TCP over UDP implementation}
 
