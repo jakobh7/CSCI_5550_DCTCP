@@ -96,9 +96,27 @@ With its Congestion Avoidance, TCP waits until it receives an indication that on
 Fast Recovery allows the cwnd to expand even when it waits on acknowledgment. Until a timeout occurs, the cwnd increases every time a duplicate ack is received.
 
 \paragraph{Data Center TCP Congestion Control Strategies}
-Where Data Center TCP's congestion control strategy is significantly different is its active management to determine if a switch is congested before a packet is dropped by marking the TCP header both on the level of the switch and the receiver.
+Where Data Center TCP's congestion control strategy is significantly different is its active management to determine if a switch is congested before a packet is dropped by marking the TCP header both on the level of the switches and the receiver.
+
+DCTCP's congestion control strategy start from the level of switches. At the switch level, TCP headers are marked as congested if the switch's cue is more full than a given percent. This is a separate cue than the ECE header bit.
+
+On the DCTCP receiver end, each packet is assessed to see if it has been marked as going through a queue with a filled queue. The receiver's ack responding to a marked packet will flag the ECE flag in the TCP header. This gives an accurate representation of filled queues back to the sender. 
+
+The sender uses the information gained from the package acknowledgments to calculate an alpha value between zero and one - indicating a less congested network for values of zero and a fully congested network with a value of one. 
+
+This allows a DCTCP sender to accurately profile the network and minimize its cwnd before a packet is dropped and has to be resent. 
+
+\paragraph{Implementation Details and Problems}
+Our implementation of this protocol ran into issues in development and test. 
+
+While our TCP over UDP implementation documented below was created for flexibility and usability, it took a considerable amount of development and testing time to create its baseline version. While it might have been necessary to allow for manipulation of the packet header, it was a roadblock to our implementation.
+
+Another main failing of our implementation was an inability to deploy the protocol so that switches could flag the necessary congestion notifications. As we document later in our Benchmark Testing section, we were able to create a virtual network to test on, but failed to properly deploy and send messages with a unique protocol.
 
 \section{Data Center TCP over UDP implementation}
+Our implementation of DCTCP was planned around a TCP over UDP style connection. This was implemented in python to allow for flexibility in working with messages being sent across. This implementation did add overhead that most likely added processing time. To make up for any added processing added by this implementation of the base TCP over UDP, we could test our DCTCP protocol against the basic TCP over UDP we created first.
+ 
+This implementation offers an easy to use, verbose header structure and parser, overloads for python sockets' send, recv, accept, and connect methods, and a distinct queue structure which groups packet data together with associated socket metadata. 
 
 \section{Benchmark Testing}
 \subsection{Mininet Setup}
@@ -106,7 +124,7 @@ A typical Data Center topology has multiple layers of switches and has decreasin
 \subsection{Benchmark Results}
 We were unable to execute the scripts on two separate hosts on Mininet, and trouble shooting did not yield any results. This means we were not able to get any measurements and results in which DCTCP was used between two hosts/ We opened two separate terminal windows connected to Mininet and once we connected a terminal to our topology, we could not get the other terminal to connect to the topology without killing the process of the first terminal. We DCTCP has been verified in linux terminal, and resulted in no errors, but we were not able to get it to run on hosts on our topology. I also tried using xterm to run the scripts on two hosts. Despite not having scripts running on the hosts, we already had benchmarking tools in place. Through the addition of a few lines of code, we added a round-trip time and throughput measurement. We used the python command perf\_counter() to mark time the file was sent and the time the file was finished sending. The size of our messages were 1024, so we could find the throughput by dividing size by the time it took to send.
 \section{Conclusion}
-In this paper, we sought to compare the performance of DCTCP protocol to a more standard protocol, like TCP, to test whether it can offer better optimizations in Data-Centers. While we were unsuccessful in implementing the DCTCP protocol in our Mininet environment, the benefits of DCTCP are already known. DCTCP fixes issues that TCP faces in Data-Centers, like Queues being overwhelmed by a sudden large number of small flows and queue buildup, by marking flows aggressively and offering more buffer space. 
+In this paper, we sought to compare the performance of DCTCP protocol to a more standard protocol, like TCP, to test whether it can offer better optimizations in Data-Centers. While we were unsuccessful in implementing the DCTCP protocol in our Mininet environment we produced a baseline TCP over UDP protocol that is easily modifiable and a Mininet topology matching a common data center structure allowing a baseline structure for future work. We also analyze the previous work on DCTCP and provide insight its overall structure. DCTCP fixes issues that TCP faces in Data-Centers, like Queues being overwhelmed by a sudden large number of small flows and queue buildup, by marking flows aggressively and offering more buffer space. 
 
 \end{document}
 %
